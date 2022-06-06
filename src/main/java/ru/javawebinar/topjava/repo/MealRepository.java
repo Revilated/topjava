@@ -12,4 +12,12 @@ import java.util.*;
  */
 public interface MealRepository {
     List<Meal> findAll();
+
+    Optional<Meal> find(int id);
+
+    void update(Meal meal);
+
+    void delete(int id);
+
+    void add(Meal meal);
 }
