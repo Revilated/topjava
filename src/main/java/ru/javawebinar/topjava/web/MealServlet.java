@@ -1,9 +1,7 @@
 package ru.javawebinar.topjava.web;
 
-import org.slf4j.*;
 import ru.javawebinar.topjava.model.*;
 import ru.javawebinar.topjava.repo.*;
-import ru.javawebinar.topjava.util.*;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
@@ -13,12 +11,13 @@ import java.time.format.*;
 import java.util.*;
 import java.util.concurrent.atomic.*;
 
-import static org.slf4j.LoggerFactory.*;
 import static ru.javawebinar.topjava.util.MealsUtil.*;
 
 public class MealServlet extends HttpServlet {
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm");
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     public static final int CALORIES_PER_DAY = 2000;
+    public static final String MEALS_PAGE = "meals.jsp";
+    public static final String MEAL_PAGE = "meal.jsp";
     private final MealRepository repository;
     private final AtomicInteger nextId;
 
@@ -29,31 +28,42 @@ public class MealServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String forward;
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String action = request.getParameter("action");
         if ("delete".equals(action)) {
             int id = Integer.parseInt(request.getParameter("id"));
             repository.delete(id);
             request.setAttribute("meals", getMealsTo());
             request.setAttribute("dateTimeFormatter", DATE_TIME_FORMATTER);
-            forward = "meals.jsp";
+            response.sendRedirect("meals");
         } else if ("edit".equals(action)) {
             int id = Integer.parseInt(request.getParameter("id"));
-            forward = "meal.jsp";
-            repository.find(id).ifPresent(m -> request.setAttribute("meal", m));
+            request.setAttribute("dateTimeFormatter", DATE_TIME_FORMATTER);
+            repository.find(id).ifPresent(m -> {
+                request.setAttribute("meal", m);
+                forward(request, response, MEAL_PAGE);
+            });
         } else if ("insert".equals(action)) {
-            forward = "meal.jsp";
+            request.setAttribute("dateTimeFormatter", DATE_TIME_FORMATTER);
+            forward(request, response, MEAL_PAGE);
         } else {
-            forward = "meals.jsp";
             request.setAttribute("meals", getMealsTo());
             request.setAttribute("dateTimeFormatter", DATE_TIME_FORMATTER);
+            forward(request, response, MEALS_PAGE);
         }
-        request.getRequestDispatcher(forward).forward(request, response);
+
+    }
+
+    private static void forward(HttpServletRequest request, HttpServletResponse response, String path) {
+        try {
+            request.getRequestDispatcher(path).forward(request, response);
+        } catch (ServletException | IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         request.setCharacterEncoding("UTF-8");
         LocalDateTime dateTime = LocalDateTime.parse(request.getParameter("dateTime"));
         String description = request.getParameter("description");
@@ -67,9 +77,7 @@ public class MealServlet extends HttpServlet {
             meal = new Meal(Integer.parseInt(idParam), dateTime, description, calories);
             repository.update(meal);
         }
-        request.setAttribute("meals", getMealsTo());
-        request.setAttribute("dateTimeFormatter", DATE_TIME_FORMATTER);
-        request.getRequestDispatcher("meals.jsp").forward(request, response);
+        response.sendRedirect("meals");
     }
 
     private List<MealTo> getMealsTo() {
