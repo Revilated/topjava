@@ -15,9 +15,9 @@ public interface MealRepository {
 
     Optional<Meal> find(int id);
 
-    void update(Meal meal);
+    Optional<Meal> update(Meal meal);
 
     void delete(int id);
 
-    void add(Meal meal);
+    Optional<Meal> add(Meal meal);
 }

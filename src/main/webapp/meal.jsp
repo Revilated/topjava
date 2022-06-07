@@ -11,9 +11,8 @@
 <jsp:useBean id="meal" scope="request" class="ru.javawebinar.topjava.model.Meal"/>
 <jsp:useBean id="dateTimeFormatter" scope="request" type="java.time.format.DateTimeFormatter"/>
 <hr>
-<h2>${meal.id == -1 ? "Add" : "Edit"} meal</h2>
-<c:set var="id" scope="page" value="${meal.id == -1 ? null : meal.id}"/>
-<form action="meals?id=${id}" method="post">
+<h2>${meal.id == null ? "Add" : "Edit"} meal</h2>
+<form action="meals?id=${meal.id}" method="post">
     <label for="datetime">DateTime:</label>
     <c:set var="now" value="<%=LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES)%>" />
     <input type="datetime-local" id="datetime" name="dateTime"

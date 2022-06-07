@@ -1,9 +1,9 @@
 package ru.javawebinar.topjava.model;
 
-import java.time.LocalDateTime;
+import java.time.*;
 
 public class MealTo {
-    private final int id;
+    private final Integer id;
 
     private final LocalDateTime dateTime;
 
@@ -21,7 +21,7 @@ public class MealTo {
         this.excess = excess;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 

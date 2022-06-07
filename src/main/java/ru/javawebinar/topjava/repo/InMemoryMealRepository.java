@@ -7,26 +7,16 @@ import ru.javawebinar.topjava.model.*;
 
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.function.*;
-import java.util.stream.*;
+import java.util.concurrent.atomic.*;
 
 /**
  * @author revilated
  */
 public class InMemoryMealRepository implements MealRepository {
 
-    private final Map<Integer, Meal> mealsById;
+    private final AtomicInteger nextId = new AtomicInteger();
 
-    public InMemoryMealRepository(List<Meal> initial) {
-        this.mealsById = initial.stream().collect(Collectors.toMap(
-                Meal::getId,
-                Function.identity(),
-                (m1, m2) -> {
-                    throw new IllegalStateException("Duplicated meal IDs");
-                },
-                () -> Collections.synchronizedMap(new LinkedHashMap<>())
-        ));
-    }
+    private final Map<Integer, Meal> mealsById = new ConcurrentHashMap<>();
 
     @Override
     public List<Meal> findAll() {
@@ -39,8 +29,13 @@ public class InMemoryMealRepository implements MealRepository {
     }
 
     @Override
-    public void update(Meal meal) {
-        mealsById.replace(meal.getId(), meal);
+    public Optional<Meal> update(Meal meal) {
+        Meal old = mealsById.replace(meal.getId(), meal);
+        if (old == null) {
+            return Optional.empty();
+        } else {
+            return Optional.of(meal);
+        }
     }
 
     @Override
@@ -49,7 +44,13 @@ public class InMemoryMealRepository implements MealRepository {
     }
 
     @Override
-    public void add(Meal meal) {
-        mealsById.putIfAbsent(meal.getId(), meal);
+    public Optional<Meal> add(Meal meal) {
+        meal.setId(nextId.getAndIncrement());
+        Meal old = mealsById.putIfAbsent(meal.getId(), meal);
+        if (old == null) {
+            return Optional.of(meal);
+        } else {
+            return Optional.empty();
+        }
     }
 }

@@ -1,23 +1,12 @@
 package ru.javawebinar.topjava.util;
 
-import ru.javawebinar.topjava.model.Meal;
-import ru.javawebinar.topjava.model.MealTo;
-import ru.javawebinar.topjava.repo.*;
+import ru.javawebinar.topjava.model.*;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.time.*;
+import java.util.*;
+import java.util.stream.*;
 
 public class MealsUtil {
-
-    public static void main(String[] args) {
-        MealRepository repository = new StaticMealRepository();
-        List<MealTo> mealsTo = filteredByStreams(repository.findAll(), LocalTime.of(7, 0),
-                LocalTime.of(12, 0), 2000);
-        mealsTo.forEach(System.out::println);
-    }
 
     public static List<MealTo> filteredByStreams(List<Meal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
         Map<LocalDate, Integer> caloriesSumByDate = meals.stream()
