@@ -1,5 +1,3 @@
-<%@ page import="java.time.*" %>
-<%@ page import="java.time.temporal.*" %>
 <%@ page contentType="text/html;charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <html lang="ru">
@@ -9,11 +7,13 @@
 <body>
 <h3><a href="index.html">Home</a></h3>
 <jsp:useBean id="meal" scope="request" class="ru.javawebinar.topjava.model.Meal"/>
+<jsp:useBean id="now" scope="request" type="java.time.LocalDateTime"/>
 <hr>
 <h2>${meal.id == null ? "Add" : "Edit"} meal</h2>
 <form action="meals?id=${meal.id}" method="post">
     <label for="datetime">DateTime:</label>
-    <input type="datetime-local" id="datetime" name="dateTime" value="${meal.dateTime}"><br>
+    <input type="datetime-local" id="datetime" name="dateTime"
+           value="${meal.dateTime == null ? now : meal.dateTime}"><br>
     <label for="description">Description</label>
     <input type="text" id="description" name="description" value="${meal.description}"><br>
     <label for="calories">Calories</label>

@@ -9,6 +9,7 @@ import javax.servlet.http.*;
 import java.io.*;
 import java.time.*;
 import java.time.format.*;
+import java.time.temporal.*;
 import java.util.*;
 
 import static org.slf4j.LoggerFactory.*;
@@ -21,7 +22,7 @@ public class MealServlet extends HttpServlet {
     private static final int CALORIES_PER_DAY = 2000;
     private static final String MEALS_PAGE = "meals.jsp";
     private static final String MEAL_PAGE = "meal.jsp";
-    private MealRepository repository = new InMemoryMealRepository();
+    private MealRepository repository;
 
 
     @Override
@@ -46,11 +47,13 @@ public class MealServlet extends HttpServlet {
                 Meal meal = repository.find(id);
                 log.debug("Editing meal with id: {}", id);
                 request.setAttribute("meal", meal);
+                request.setAttribute("now", LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES));
                 request.getRequestDispatcher(MEAL_PAGE).forward(request, response);
                 break;
             }
             case "insert":
                 log.debug("Start creating new meal");
+                request.setAttribute("now", LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES));
                 request.getRequestDispatcher(MEAL_PAGE).forward(request, response);
                 break;
             default:
