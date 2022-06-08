@@ -13,11 +13,11 @@ import java.util.*;
 public interface MealRepository {
     List<Meal> findAll();
 
-    Optional<Meal> find(int id);
+    Meal find(int id);
 
-    Optional<Meal> update(Meal meal);
+    Meal update(Meal meal);
 
     void delete(int id);
 
-    Optional<Meal> add(Meal meal);
+    Meal add(Meal meal);
 }

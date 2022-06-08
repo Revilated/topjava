@@ -1,6 +1,7 @@
 package ru.javawebinar.topjava.model;
 
 import java.time.*;
+import java.time.temporal.*;
 
 public class Meal {
     private Integer id;
@@ -12,7 +13,7 @@ public class Meal {
     private final int calories;
 
     public Meal() {
-        this(null, null, null, 0);
+        this(null, LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES), null, 0);
     }
 
     public Meal(Integer id, LocalDateTime dateTime, String description, int calories) {
@@ -22,7 +23,7 @@ public class Meal {
         this.calories = calories;
     }
 
-    public void setId(Integer id) {
+    public void setId(int id) {
         this.id = id;
     }
 
