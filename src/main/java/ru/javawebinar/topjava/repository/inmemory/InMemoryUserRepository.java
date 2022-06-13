@@ -1,11 +1,13 @@
 package ru.javawebinar.topjava.repository.inmemory;
 
 import org.slf4j.*;
+import org.springframework.stereotype.*;
 import ru.javawebinar.topjava.model.*;
 import ru.javawebinar.topjava.repository.*;
 
 import java.util.*;
 
+@Repository
 public class InMemoryUserRepository implements UserRepository {
     private static final Logger log = LoggerFactory.getLogger(InMemoryUserRepository.class);
 

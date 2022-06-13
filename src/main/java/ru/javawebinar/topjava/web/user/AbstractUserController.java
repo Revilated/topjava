@@ -1,6 +1,7 @@
 package ru.javawebinar.topjava.web.user;
 
 import org.slf4j.*;
+import org.springframework.beans.factory.annotation.*;
 import ru.javawebinar.topjava.model.*;
 import ru.javawebinar.topjava.service.*;
 
@@ -11,6 +12,7 @@ import static ru.javawebinar.topjava.util.ValidationUtil.*;
 public abstract class AbstractUserController {
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
+    @Autowired
     private UserService service;
 
     public List<User> getAll() {

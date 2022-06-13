@@ -1,5 +1,6 @@
 package ru.javawebinar.topjava.service;
 
+import org.springframework.stereotype.*;
 import ru.javawebinar.topjava.model.*;
 import ru.javawebinar.topjava.repository.*;
 
@@ -7,6 +8,7 @@ import java.util.*;
 
 import static ru.javawebinar.topjava.util.ValidationUtil.*;
 
+@Service
 public class UserService {
 
     private final UserRepository repository;
