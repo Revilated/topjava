@@ -3,6 +3,7 @@ package ru.javawebinar.topjava.web;
 import org.slf4j.*;
 import ru.javawebinar.topjava.model.*;
 import ru.javawebinar.topjava.repository.*;
+import ru.javawebinar.topjava.repository.inmemory.*;
 import ru.javawebinar.topjava.util.*;
 
 import javax.servlet.*;

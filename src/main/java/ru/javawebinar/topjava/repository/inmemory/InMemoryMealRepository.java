@@ -1,6 +1,7 @@
-package ru.javawebinar.topjava.repository;
+package ru.javawebinar.topjava.repository.inmemory;
 
 import ru.javawebinar.topjava.model.*;
+import ru.javawebinar.topjava.repository.*;
 import ru.javawebinar.topjava.util.*;
 
 import java.util.*;
