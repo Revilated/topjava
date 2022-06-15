@@ -38,6 +38,8 @@ public class MealService {
     }
 
     public Collection<Meal> getAllFiltered(int userId, LocalDate startDate, LocalDate endDate) {
-        return repository.getAllBetweenHalfOpen(userId, startDate.atStartOfDay(), endDate.atStartOfDay().plusDays(1));
+        LocalDateTime startDt = startDate == null ? null : startDate.atStartOfDay();
+        LocalDateTime endDt = endDate == null ? null : endDate.atStartOfDay().plusDays(1);
+        return repository.getAllBetweenHalfOpen(userId, startDt, endDt);
     }
 }

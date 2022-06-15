@@ -55,9 +55,7 @@ public class InMemoryMealRepository implements MealRepository {
     @Override
     public Collection<Meal> getAllBetweenHalfOpen(int userId, LocalDateTime startDateTime, LocalDateTime endDateTime) {
         return getAll(userId).stream()
-                .filter(m -> startDateTime == null
-                        || endDateTime == null
-                        || DateTimeUtil.isBetweenHalfOpen(m.getDateTime(), startDateTime, endDateTime))
+                .filter(m -> DateTimeUtil.isBetweenHalfOpen(m.getDateTime(), startDateTime, endDateTime))
                 .collect(Collectors.toList());
     }
 

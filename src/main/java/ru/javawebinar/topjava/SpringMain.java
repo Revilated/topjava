@@ -21,9 +21,9 @@ public class SpringMain {
             mealRestController.getAll().forEach(System.out::println);
             System.out.println("getAllFiltered():");
             LocalDate date = LocalDate.of(2020, Month.JANUARY, 31);
-            LocalTime startTime = LocalTime.of(10, 0);
-            LocalTime endTime = LocalTime.of(14, 0);
-            mealRestController.getAllFiltered(date, startTime, date, endTime).forEach(System.out::println);
+            MealFilterParams filterParams = new MealFilterParams(date, date, LocalTime.of(10, 0),
+                    LocalTime.of(14, 0));
+            mealRestController.getAllFiltered(filterParams).forEach(System.out::println);
             System.out.println("get():");
             System.out.println(mealRestController.get(1));
             System.out.println("create(), update():");

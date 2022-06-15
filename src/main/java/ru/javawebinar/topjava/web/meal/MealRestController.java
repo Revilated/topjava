@@ -6,7 +6,6 @@ import ru.javawebinar.topjava.service.*;
 import ru.javawebinar.topjava.to.*;
 import ru.javawebinar.topjava.util.*;
 
-import java.time.*;
 import java.util.*;
 
 import static ru.javawebinar.topjava.util.MealsUtil.*;
@@ -43,8 +42,11 @@ public class MealRestController {
         return getTos(service.getAll(authUserId()), authUserCaloriesPerDay());
     }
 
-    public List<MealTo> getAllFiltered(LocalDate startDate, LocalTime startTime, LocalDate endDate, LocalTime endTime) {
-        return getFilteredTos(service.getAllFiltered(authUserId(), startDate, endDate), authUserCaloriesPerDay(),
-                startTime, endTime);
+    public List<MealTo> getAllFiltered(MealFilterParams filterParams) {
+        return getFilteredTos(
+                service.getAllFiltered(authUserId(), filterParams.getStartDate(), filterParams.getEndDate()),
+                authUserCaloriesPerDay(),
+                filterParams.getStartTime(), filterParams.getEndTime()
+        );
     }
 }

@@ -9,7 +9,11 @@ public class DateTimeUtil {
 
     public static <T extends Temporal> boolean isBetweenHalfOpen(Comparable<T> temporal, T startTemporal,
                                                                  T endTemporal) {
-        return temporal.compareTo(startTemporal) >= 0 && temporal.compareTo(endTemporal) < 0;
+        return startTemporal == null && endTemporal == null
+                || startTemporal == null && temporal.compareTo(endTemporal) < 0
+                || endTemporal == null && temporal.compareTo(startTemporal) >= 0
+                || startTemporal != null && endTemporal != null
+                && temporal.compareTo(startTemporal) >= 0 && temporal.compareTo(endTemporal) < 0;
     }
 
     public static String toString(LocalDateTime ldt) {
