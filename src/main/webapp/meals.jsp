@@ -21,26 +21,25 @@
     <h3><a href="index.html">Home</a></h3>
     <hr/>
     <h2>Meals</h2>
-    <jsp:useBean id="filterParams" class="ru.javawebinar.topjava.model.MealFilterParams" scope="request"/>
     <form method="get" action="meals">
         <input type="hidden" name="action" value="filter" />
         <table cellpadding="8" cellspacing="0" style="border: 1px solid black">
             <tr>
             <td><label>
                 От даты<br>(включая):<br>
-                <input type="date" name="startDate" value="${filterParams.startDate}">
+                <input type="date" name="startDate" value="${param.startDate}">
             </label></td>
             <td><label>
                 До даты<br>(включая):<br>
-                <input type="date" name="endDate" value="${filterParams.endDate}">
+                <input type="date" name="endDate" value="${param.endDate}">
             </label></td>
                 <td><label>
                     От времени<br>(включая):<br>
-                    <input type="time" name="startTime" value="${filterParams.startTime}">
+                    <input type="time" name="startTime" value="${param.startTime}">
                 </label></td>
                 <td><label>
                     До времени<br>(включая):<br>
-                    <input type="time" name="endTime" value="${filterParams.endTime}">
+                    <input type="time" name="endTime" value="${param.endTime}">
                 </label></td>
             </tr>
             <tr>

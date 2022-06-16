@@ -1,15 +1,13 @@
 package ru.javawebinar.topjava.web;
 
-import java.util.concurrent.atomic.*;
-
 import static ru.javawebinar.topjava.util.MealsUtil.*;
 
 public class SecurityUtil {
 
-    private static final AtomicInteger userId = new AtomicInteger(1);
+    private static int userId = 1;
 
     public static int authUserId() {
-        return userId.get();
+        return userId;
     }
 
     public static int authUserCaloriesPerDay() {
@@ -17,6 +15,6 @@ public class SecurityUtil {
     }
 
     public static void setAuthUserId(int id) {
-        userId.set(id);
+        userId = id;
     }
 }

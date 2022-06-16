@@ -8,6 +8,7 @@ import java.time.*;
 import java.util.*;
 
 import static ru.javawebinar.topjava.util.ValidationUtil.*;
+
 @Service
 public class MealService {
 
@@ -18,11 +19,11 @@ public class MealService {
     }
 
     public Meal create(Meal meal) {
-        return checkNotFoundWithId(repository.save(meal), meal.getId());
+        return repository.save(meal, meal.getUserId());
     }
 
-    public void update(Meal meal) {
-        checkNotFoundWithId(repository.save(meal), meal.getId());
+    public void update(Meal meal, int userId) {
+        checkNotFoundWithId(repository.save(meal, userId), meal.getId());
     }
 
     public void delete(int mealId, int userId) {
@@ -33,13 +34,13 @@ public class MealService {
         return checkNotFoundWithId(repository.get(mealId, userId), mealId);
     }
 
-    public Collection<Meal> getAll(int userId) {
+    public List<Meal> getAll(int userId) {
         return repository.getAll(userId);
     }
 
-    public Collection<Meal> getAllFiltered(int userId, LocalDate startDate, LocalDate endDate) {
-        LocalDateTime startDt = startDate == null ? null : startDate.atStartOfDay();
-        LocalDateTime endDt = endDate == null ? null : endDate.atStartOfDay().plusDays(1);
-        return repository.getAllBetweenHalfOpen(userId, startDt, endDt);
+    public List<Meal> getAllFiltered(int userId, LocalDate startDate, LocalDate endDate) {
+        LocalDateTime startDateTime = startDate == null ? null : startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate == null ? null : endDate.atStartOfDay().plusDays(1);
+        return repository.getAllBetweenHalfOpen(userId, startDateTime, endDateTime);
     }
 }

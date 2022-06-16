@@ -9,59 +9,79 @@ import java.time.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
+import java.util.function.*;
 import java.util.stream.*;
 
 @Repository
 public class InMemoryMealRepository implements MealRepository {
-    private final Map<Integer, Meal> repository = new ConcurrentHashMap<>();
+    private final Map<Integer, Map<Integer, Meal>> repository = new ConcurrentHashMap<>();
     private final AtomicInteger counter = new AtomicInteger(0);
 
     {
-        MealsUtil.meals.forEach(this::save);
+        MealsUtil.meals.forEach(meal -> save(meal, meal.getUserId()));
     }
 
     @Override
-    public Meal save(Meal meal) {
+    public Meal save(Meal meal, int userId) {
         if (meal.isNew()) {
             meal.setId(counter.incrementAndGet());
-            repository.put(meal.getId(), meal);
+            meal.setUserId(userId);
+            repository.compute(userId, (key, map) -> {
+                Map<Integer, Meal> result = map == null ? new ConcurrentHashMap<>() : map;
+                result.put(meal.getId(), meal);
+                return result;
+            });
             return meal;
         }
         // handle case: update, but not present in storage
-        if (isNotBelongsToUser(meal.getId(), meal.getUserId())) {
+        if (isBelongsToUser(meal.getId(), userId)) {
+            meal.setUserId(userId);
+        } else {
             return null;
         }
-        return repository.computeIfPresent(meal.getId(), (id, oldMeal) -> meal);
+        return repository.get(userId).computeIfPresent(meal.getId(), (id, oldMeal) -> meal);
     }
 
     @Override
     public boolean delete(int mealId, int userId) {
-        return isNotBelongsToUser(mealId, userId) || repository.remove(mealId) != null;
+        return isBelongsToUser(mealId, userId) && repository.get(userId).remove(mealId) != null;
     }
 
     @Override
     public Meal get(int mealId, int userId) {
-        return isNotBelongsToUser(mealId, userId) ? null : repository.get(mealId);
+        if (!repository.containsKey(userId)) {
+            return null;
+        }
+        Meal meal = repository.get(userId).get(mealId);
+        return meal != null && meal.getUserId() == userId ? meal : null;
     }
 
     @Override
-    public Collection<Meal> getAll(int userId) {
-        return repository.values().stream()
-                .filter(m -> m.getUserId() == userId)
+    public List<Meal> getAll(int userId) {
+        return getAllFiltered(userId, m -> true);
+    }
+
+    @Override
+    public List<Meal> getAllBetweenHalfOpen(int userId, LocalDateTime startDateTime, LocalDateTime endDateTime) {
+        return getAllFiltered(userId, m -> DateTimeUtil.isBetweenHalfOpen(m.getDateTime(), startDateTime, endDateTime));
+    }
+
+    private List<Meal> getAllFiltered(int userId, Predicate<Meal> filter) {
+        if (!repository.containsKey(userId)) {
+            return Collections.emptyList();
+        }
+        return repository.get(userId).values().stream()
+                .filter(m -> m.getUserId() == userId && filter.test(m))
                 .sorted(Comparator.comparing(Meal::getDateTime).reversed())
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public Collection<Meal> getAllBetweenHalfOpen(int userId, LocalDateTime startDateTime, LocalDateTime endDateTime) {
-        return getAll(userId).stream()
-                .filter(m -> DateTimeUtil.isBetweenHalfOpen(m.getDateTime(), startDateTime, endDateTime))
-                .collect(Collectors.toList());
-    }
-
-    private boolean isNotBelongsToUser(int mealId, int userId) {
-        Meal meal = repository.get(mealId);
-        return meal == null || meal.getUserId() != userId;
+    private boolean isBelongsToUser(int mealId, int userId) {
+        if (!repository.containsKey(userId)) {
+            return false;
+        }
+        Meal meal = repository.get(userId).get(mealId);
+        return meal != null && meal.getUserId() == userId;
     }
 }
 

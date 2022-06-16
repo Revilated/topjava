@@ -5,10 +5,9 @@ import ru.javawebinar.topjava.model.*;
 import java.time.*;
 import java.util.*;
 
-// TODO add userId
 public interface MealRepository {
     // null if updated meal does not belong to userId
-    Meal save(Meal meal);
+    Meal save(Meal meal, int userId);
 
     // false if meal does not belong to userId
     boolean delete(int mealId, int userId);
@@ -17,7 +16,7 @@ public interface MealRepository {
     Meal get(int mealId, int userId);
 
     // ORDERED dateTime desc
-    Collection<Meal> getAll(int userId);
+    List<Meal> getAll(int userId);
 
-    Collection<Meal> getAllBetweenHalfOpen(int userId, LocalDateTime startDateTime, LocalDateTime endDateTime);
+    List<Meal> getAllBetweenHalfOpen(int userId, LocalDateTime startDateTime, LocalDateTime endDateTime);
 }
