@@ -26,10 +26,9 @@ public class MealRestController {
     }
 
     public Meal create(Meal meal) {
-        meal.setUserId(authUserId());
         log.debug("create meal: {}", meal);
         checkNew(meal);
-        return service.create(meal);
+        return service.create(meal, authUserId());
     }
 
     public Meal get(int id) {

@@ -34,8 +34,7 @@ public class MealServlet extends HttpServlet {
         Meal meal = new Meal(id.isEmpty() ? null : Integer.valueOf(id),
                 LocalDateTime.parse(request.getParameter("dateTime")),
                 request.getParameter("description"),
-                Integer.parseInt(request.getParameter("calories")),
-                null);
+                Integer.parseInt(request.getParameter("calories")));
         if (meal.isNew()) {
             log.info("Create {}", meal);
             controller.create(meal);

@@ -18,8 +18,8 @@ public class MealService {
         this.repository = repository;
     }
 
-    public Meal create(Meal meal) {
-        return repository.save(meal, meal.getUserId());
+    public Meal create(Meal meal, int userId) {
+        return repository.save(meal, userId);
     }
 
     public void update(Meal meal, int userId) {

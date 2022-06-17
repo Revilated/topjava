@@ -33,7 +33,7 @@ public class SpringMain {
             mealRestController.create(newMeal);
             Meal updatedMeal = new Meal(4,
                     LocalDateTime.of(2020, Month.JANUARY, 31, 0, 0),
-                    "Еда на граничное значение", 50, null);
+                    "Еда на граничное значение", 50);
             mealRestController.update(updatedMeal, 4);
             mealRestController.getAll().forEach(System.out::println);
             System.out.println("delete():");
