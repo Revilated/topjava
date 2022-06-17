@@ -26,9 +26,7 @@ public class InMemoryMealRepository implements MealRepository {
     public Meal save(Meal meal, int userId) {
         if (meal.isNew()) {
             meal.setId(counter.incrementAndGet());
-            repository.computeIfAbsent(userId, key -> new ConcurrentHashMap<>());
-            repository.get(userId).put(meal.getId(), meal);
-            return meal;
+            return repository.computeIfAbsent(userId, key -> new ConcurrentHashMap<>()).put(meal.getId(), meal);
         }
         // handle case: update, but not present in storage
         Map<Integer, Meal> meals = repository.get(userId);
