@@ -1,6 +1,6 @@
-package ru.javawebinar.topjava.model;
+package ru.javawebinar.topjava.to;
 
-import java.time.*;
+import java.time.LocalDateTime;
 
 public class MealTo {
     private final Integer id;
