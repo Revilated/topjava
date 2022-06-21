@@ -12,10 +12,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
-import java.util.Collection;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static ru.javawebinar.topjava.MealTestData.*;
 
@@ -37,8 +36,7 @@ public class MealServiceTest {
     @Test
     public void get() {
         Meal actual = service.get(MEAL_ID, USER_ID);
-        Meal expected = mealsByUsers.get(USER_ID).get(MEAL_ID);
-        assertThat(actual).usingRecursiveComparison().isEqualTo(expected);
+        assertMatch(actual, meal);
     }
 
     @Test
@@ -60,14 +58,13 @@ public class MealServiceTest {
     @Test
     public void getBetweenInclusive() {
         List<Meal> actual = service.getBetweenInclusive(START_DATE, END_DATE, USER_ID);
-        assertThat(actual).usingRecursiveFieldByFieldElementComparator().isEqualTo(filteredMeals);
+        assertMatch(actual, meal3, meal2, meal1);
     }
 
     @Test
     public void getAll() {
         List<Meal> actual = service.getAll(USER_ID);
-        Collection<Meal> expected = mealsByUsers.get(USER_ID).values();
-        assertThat(actual).usingRecursiveFieldByFieldElementComparator().isEqualTo(expected);
+        assertMatch(actual, meal7, meal6, meal5, meal4, meal3, meal2, meal1);
     }
 
     @Test
@@ -75,13 +72,12 @@ public class MealServiceTest {
         Meal expected = getUpdated();
         service.update(expected, USER_ID);
         Meal actual = service.get(MEAL_ID, USER_ID);
-        assertThat(actual).usingRecursiveComparison().isEqualTo(expected);
+        assertMatch(actual, expected);
     }
 
     @Test
     public void updateSomeoneElseFood() {
-        Meal meal = mealsByUsers.get(USER_ID).get(MEAL_ID);
-        assertThatThrownBy(() -> service.update(meal, ANOTHER_USER_ID)).isInstanceOf(NotFoundException.class);
+        assertThatThrownBy(() -> service.update(getUpdated(), ANOTHER_USER_ID)).isInstanceOf(NotFoundException.class);
     }
 
     @Test
@@ -90,13 +86,18 @@ public class MealServiceTest {
         Integer newId = created.getId();
         Meal expected = getNew();
         expected.setId(newId);
-        assertThat(created).usingRecursiveComparison().isEqualTo(expected);
-        assertThat(service.get(newId, USER_ID)).usingRecursiveComparison().isEqualTo(expected);
+        assertMatch(created, expected);
+        assertMatch(service.get(newId, USER_ID), expected);
     }
 
     @Test
     public void duplicateDateTimeCreate() {
         assertThatThrownBy(() -> service.create(getDuplicateDateTimeMeal(), USER_ID))
                 .isInstanceOf(DataAccessException.class);
+    }
+
+    @Test
+    public void sameDateTimeForDifferentUsersCreate() {
+        assertThatCode(() -> service.create(getDuplicateDateTimeMeal(), ANOTHER_USER_ID)).doesNotThrowAnyException();
     }
 }
