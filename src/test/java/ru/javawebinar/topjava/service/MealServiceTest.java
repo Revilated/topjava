@@ -1,7 +1,17 @@
 package ru.javawebinar.topjava.service;
 
+import org.junit.After;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Stopwatch;
+import org.junit.rules.TestName;
+import org.junit.rules.TestRule;
+import org.junit.runner.Description;
 import org.junit.runner.RunWith;
+import org.junit.runners.model.Statement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.test.context.ContextConfiguration;
@@ -13,6 +23,9 @@ import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertThrows;
 import static ru.javawebinar.topjava.MealTestData.*;
@@ -27,8 +40,25 @@ import static ru.javawebinar.topjava.UserTestData.USER_ID;
 @Sql(scripts = "classpath:db/populateDB.sql", config = @SqlConfig(encoding = "UTF-8"))
 public class MealServiceTest {
 
+    private static final Logger log = LoggerFactory.getLogger(MealServiceTest.class);
+
+    @Rule
+    public final TestName testName = new TestName();
+
+    @Rule
+    public final TimeLoggingRule timeLoggingRule = new TimeLoggingRule(log);
+
+    @ClassRule
+    public static final StatRule statRule = new StatRule(log);
+
     @Autowired
     private MealService service;
+
+    @After
+    public void updateTestStat() {
+        long elapsed = timeLoggingRule.runtime(TimeUnit.MILLISECONDS);
+        statRule.updateStat(testName.getMethodName(), elapsed);
+    }
 
     @Test
     public void delete() {
@@ -107,5 +137,47 @@ public class MealServiceTest {
     @Test
     public void getBetweenWithNullDates() {
         MEAL_MATCHER.assertMatch(service.getBetweenInclusive(null, null, USER_ID), meals);
+    }
+
+    private static class TimeLoggingRule extends Stopwatch {
+
+        private final Logger log;
+
+        private TimeLoggingRule(Logger log) {
+            this.log = log;
+        }
+
+        @Override
+        public long runtime(TimeUnit unit) {
+            long elapsed = super.runtime(unit);
+            log.debug("time spent: " + elapsed + " " + unit.name());
+            return elapsed;
+        }
+    }
+
+    private static class StatRule implements TestRule {
+
+        private final Logger log;
+        private final Map<String, Long> stat = new ConcurrentHashMap<>();
+
+        private StatRule(Logger log) {
+            this.log = log;
+        }
+
+        @Override
+        public Statement apply(Statement base, Description description) {
+            return new Statement() {
+                @Override
+                public void evaluate() throws Throwable {
+                    base.evaluate();
+                    log.debug("overall time spent:");
+                    stat.forEach((m, t) -> log.debug("{}: {} ms", m, t));
+                }
+            };
+        }
+
+        public void updateStat(String methodName, long timeSpentMs) {
+            stat.put(methodName, timeSpentMs);
+        }
     }
 }
