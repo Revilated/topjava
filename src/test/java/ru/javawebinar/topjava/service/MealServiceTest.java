@@ -1,11 +1,9 @@
 package ru.javawebinar.topjava.service;
 
-import org.junit.After;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Stopwatch;
-import org.junit.rules.TestName;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;
@@ -25,7 +23,6 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertThrows;
 import static ru.javawebinar.topjava.MealTestData.*;
@@ -43,22 +40,13 @@ public class MealServiceTest {
     private static final Logger log = LoggerFactory.getLogger(MealServiceTest.class);
 
     @Rule
-    public final TestName testName = new TestName();
-
-    @Rule
-    public final TimeLoggingRule timeLoggingRule = new TimeLoggingRule(log);
+    public final TimeLoggingRule timeLoggingRule = new TimeLoggingRule();
 
     @ClassRule
-    public static final StatRule statRule = new StatRule(log);
+    public static final StatRule statRule = new StatRule();
 
     @Autowired
     private MealService service;
-
-    @After
-    public void updateTestStat() {
-        long elapsed = timeLoggingRule.runtime(TimeUnit.MILLISECONDS);
-        statRule.updateStat(testName.getMethodName(), elapsed);
-    }
 
     @Test
     public void delete() {
@@ -140,29 +128,15 @@ public class MealServiceTest {
     }
 
     private static class TimeLoggingRule extends Stopwatch {
-
-        private final Logger log;
-
-        private TimeLoggingRule(Logger log) {
-            this.log = log;
-        }
-
         @Override
-        public long runtime(TimeUnit unit) {
-            long elapsed = super.runtime(unit);
-            log.debug("time spent: " + elapsed + " " + unit.name());
-            return elapsed;
+        protected void finished(long nanos, Description description) {
+            statRule.updateStat(description.getMethodName(), nanos / 1_000_000);
         }
     }
 
     private static class StatRule implements TestRule {
 
-        private final Logger log;
         private final Map<String, Long> stat = new ConcurrentHashMap<>();
-
-        private StatRule(Logger log) {
-            this.log = log;
-        }
 
         @Override
         public Statement apply(Statement base, Description description) {
@@ -170,8 +144,10 @@ public class MealServiceTest {
                 @Override
                 public void evaluate() throws Throwable {
                     base.evaluate();
-                    log.debug("overall time spent:");
-                    stat.forEach((m, t) -> log.debug("{}: {} ms", m, t));
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("overall time spent:\n");
+                    stat.forEach((m, t) -> sb.append(String.format("%s: %d ms\n", m, t)));
+                    log.debug(sb.toString());
                 }
             };
         }
