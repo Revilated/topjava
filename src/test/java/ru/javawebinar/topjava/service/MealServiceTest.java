@@ -21,8 +21,7 @@ import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertThrows;
 import static ru.javawebinar.topjava.MealTestData.*;
@@ -36,14 +35,13 @@ import static ru.javawebinar.topjava.UserTestData.USER_ID;
 @RunWith(SpringRunner.class)
 @Sql(scripts = "classpath:db/populateDB.sql", config = @SqlConfig(encoding = "UTF-8"))
 public class MealServiceTest {
+    @ClassRule
+    public static final StatRule statRule = new StatRule();
 
     private static final Logger log = LoggerFactory.getLogger(MealServiceTest.class);
 
     @Rule
     public final TimeLoggingRule timeLoggingRule = new TimeLoggingRule();
-
-    @ClassRule
-    public static final StatRule statRule = new StatRule();
 
     @Autowired
     private MealService service;
@@ -130,13 +128,15 @@ public class MealServiceTest {
     private static class TimeLoggingRule extends Stopwatch {
         @Override
         protected void finished(long nanos, Description description) {
-            statRule.updateStat(description.getMethodName(), nanos / 1_000_000);
+            long ms = TimeUnit.NANOSECONDS.toMillis(nanos);
+            log.debug("time spent: " + ms + " ms");
+            statRule.updateStat(description.getMethodName(), ms);
         }
     }
 
     private static class StatRule implements TestRule {
 
-        private final Map<String, Long> stat = new ConcurrentHashMap<>();
+        private final StringBuilder statOutputBuilder = new StringBuilder("overall time spent:\n");
 
         @Override
         public Statement apply(Statement base, Description description) {
@@ -144,16 +144,13 @@ public class MealServiceTest {
                 @Override
                 public void evaluate() throws Throwable {
                     base.evaluate();
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("overall time spent:\n");
-                    stat.forEach((m, t) -> sb.append(String.format("%s: %d ms\n", m, t)));
-                    log.debug(sb.toString());
+                    log.debug(statOutputBuilder.toString());
                 }
             };
         }
 
         public void updateStat(String methodName, long timeSpentMs) {
-            stat.put(methodName, timeSpentMs);
+            statOutputBuilder.append(String.format("%25s: %5d ms\n", methodName, timeSpentMs));
         }
     }
 }
