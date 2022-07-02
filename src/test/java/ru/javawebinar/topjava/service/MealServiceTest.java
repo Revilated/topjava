@@ -129,7 +129,7 @@ public class MealServiceTest {
         @Override
         protected void finished(long nanos, Description description) {
             long ms = TimeUnit.NANOSECONDS.toMillis(nanos);
-            log.debug("time spent: " + ms + " ms");
+            log.debug("time spent: {} ms", ms);
             statRule.updateStat(description.getMethodName(), ms);
         }
     }
