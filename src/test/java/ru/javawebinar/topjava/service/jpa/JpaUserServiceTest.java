@@ -1,5 +1,5 @@
 /*
- * (C) 2022 https://github.com/revilated
+ * 2022 https://github.com/revilated
  */
 package ru.javawebinar.topjava.service.jpa;
 
