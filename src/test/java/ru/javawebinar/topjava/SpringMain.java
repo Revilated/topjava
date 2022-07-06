@@ -19,7 +19,7 @@ public class SpringMain {
         try (ClassPathXmlApplicationContext appCtx = new ClassPathXmlApplicationContext()) {
             appCtx.getEnvironment().setActiveProfiles(Profiles.getActiveDbProfile(),
                     Profiles.REPOSITORY_IMPLEMENTATION);
-            appCtx.setConfigLocations("spring/spring-app.xml", "spring/inmemory.xml");
+            appCtx.setConfigLocations("spring/spring-app.xml", "spring/spring-db.xml");
             appCtx.refresh();
             System.out.println("Bean definition names: " + Arrays.toString(appCtx.getBeanDefinitionNames()));
             AdminRestController adminUserController = appCtx.getBean(AdminRestController.class);

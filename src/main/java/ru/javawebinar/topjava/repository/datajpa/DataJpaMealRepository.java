@@ -26,10 +26,10 @@ public class DataJpaMealRepository implements MealRepository {
     @Override
     @Transactional
     public Meal save(Meal meal, int userId) {
-        meal.setUser(crudUserRepository.getReferenceById(userId));
         if (!meal.isNew() && get(meal.id(), userId) == null) {
             return null;
         } else {
+            meal.setUser(crudUserRepository.getReferenceById(userId));
             return crudMealRepository.save(meal);
         }
     }
@@ -41,7 +41,7 @@ public class DataJpaMealRepository implements MealRepository {
 
     @Override
     public Meal get(int id, int userId) {
-        return crudMealRepository.findByIdAndUserId(id, userId).orElse(null);
+        return crudMealRepository.findByIdAndUserId(id, userId);
     }
 
     @Override
@@ -51,12 +51,11 @@ public class DataJpaMealRepository implements MealRepository {
 
     @Override
     public List<Meal> getBetweenHalfOpen(LocalDateTime startDateTime, LocalDateTime endDateTime, int userId) {
-        return crudMealRepository.findAllByUserIdAndDateTimeGreaterThanEqualAndDateTimeLessThan(userId, startDateTime,
-                endDateTime, SORT_DATE_TIME);
+        return crudMealRepository.findAllBetweenHalfOpen(userId, startDateTime, endDateTime, SORT_DATE_TIME);
     }
 
     @Override
     public Meal getWithUser(int id, int userId) {
-        return crudMealRepository.findByIdAndUserIdEagerly(id, userId).orElse(null);
+        return crudMealRepository.findByIdAndUserIdFetchingUserEagerly(id, userId);
     }
 }
