@@ -59,8 +59,7 @@ public class JdbcUserRepository implements UserRepository {
             user.setId(newKey.intValue());
             Set<Role> roles = user.getRoles();
             if (roles != null) {
-                var params = roles.stream().map(r -> new Object[]{user.id(), r.toString()}).toList();
-                jdbcTemplate.batchUpdate("INSERT INTO user_roles VALUES (?, ?)", params);
+                insertRoles(roles, user.id());
             }
         } else {
             if (namedParameterJdbcTemplate.update("""
@@ -71,27 +70,45 @@ public class JdbcUserRepository implements UserRepository {
             }
             Set<Role> roles = user.getRoles();
             if (roles != null) {
-                var params = roles.stream().map(r -> new Object[]{r.toString(), user.id()}).toList();
+                Set<Role> oldRoles = getRoles(user.id());
+                if (roles.size() < oldRoles.size()) {
+                    Set<Role> removedRoles = new HashSet<>(oldRoles);
+                    removedRoles.removeAll(roles);
+                    var params = getStatementParamsForRoles(removedRoles, user.id());
+                    jdbcTemplate.batchUpdate("DELETE FROM user_roles WHERE role=? AND user_id=?", params);
+                } else if (roles.size() > oldRoles.size()) {
+                    Set<Role> newRoles = new HashSet<>(roles);
+                    newRoles.removeAll(oldRoles);
+                    insertRoles(newRoles, user.id());
+                }
+                var params = getStatementParamsForRoles(roles, user.id());
                 jdbcTemplate.batchUpdate("UPDATE user_roles SET role=? WHERE user_id=?", params);
             }
         }
         return user;
     }
 
+    private void insertRoles(Set<Role> roles, int userId) {
+        var params = getStatementParamsForRoles(roles, userId);
+        jdbcTemplate.batchUpdate("INSERT INTO user_roles (role, user_id) VALUES (?, ?)", params);
+    }
+
+    private List<Object[]> getStatementParamsForRoles(Set<Role> roles, int userId) {
+        return roles.stream().map(r -> new Object[]{r.toString(), userId}).toList();
+    }
+
     @Override
     @Transactional
     public boolean delete(int id) {
-        jdbcTemplate.update("DELETE FROM user_roles WHERE user_id=?", id);
         return jdbcTemplate.update("DELETE FROM users WHERE id=?", id) != 0;
     }
 
     @Override
     public User get(int id) {
-        Set<Role> roles = getRoles(id);
         List<User> users = jdbcTemplate.query("SELECT * FROM users WHERE id=?", USERS_ROW_MAPPER, id);
         User user = DataAccessUtils.singleResult(users);
         if (user != null) {
-            user.setRoles(roles);
+            user.setRoles(getRoles(id));
         }
         return user;
     }

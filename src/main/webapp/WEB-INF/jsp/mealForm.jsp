@@ -7,12 +7,10 @@
 <body>
 <jsp:include page="fragments/bodyHeader.jsp"/>
 <section>
-    <h3><a href="${pageContext.request.contextPath}/"><spring:message code="common.home"/></a></h3>
-    <hr>
-    <c:set var="url" value="${requestScope['javax.servlet.forward.request_uri']}" scope="page"/>
-    <h2><spring:message code="${url.endsWith('add') ? 'meal.addMeal' : 'meal.editMeal'}"/></h2>
     <jsp:useBean id="meal" type="ru.javawebinar.topjava.model.Meal" scope="request"/>
-    <form method="post" action="${url}">
+    <c:set var="action" value="${meal.id == null ? 'add' : 'edit'}" scope="page"/>
+    <h2><spring:message code="${meal.id == null ? 'meal.addMeal' : 'meal.editMeal'}"/></h2>
+    <form method="post" action="${action}">
         <input type="hidden" name="id" value="${meal.id}">
         <dl>
             <dt><spring:message code="common.dateTime"/>:</dt>
