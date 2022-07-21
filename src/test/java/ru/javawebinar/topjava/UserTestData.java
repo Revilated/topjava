@@ -3,9 +3,7 @@ package ru.javawebinar.topjava;
 import ru.javawebinar.topjava.model.Role;
 import ru.javawebinar.topjava.model.User;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.Set;
+import java.util.*;
 
 import static ru.javawebinar.topjava.model.AbstractBaseEntity.START_SEQ;
 
@@ -16,6 +14,7 @@ public class UserTestData {
     public static final int ADMIN_ID = START_SEQ + 1;
     public static final int GUEST_ID = START_SEQ + 2;
     public static final int NOT_FOUND = 10;
+    public static final String NOT_FOUND_EMAIL = "notfound@gmail.com";
 
     public static final User user = new User(USER_ID, "User", "user@yandex.ru", "password", Role.USER);
     public static final User admin = new User(ADMIN_ID, "Admin", "admin@gmail.com", "admin", Role.ADMIN, Role.USER);
@@ -34,6 +33,20 @@ public class UserTestData {
         updated.setPassword("newPass");
         updated.setEnabled(false);
         updated.setRoles(Collections.singletonList(Role.ADMIN));
+        return updated;
+    }
+
+    public static User getUpdatedByAddRoles() {
+        User updated = new User(user);
+        var newRoles = new HashSet<>(user.getRoles());
+        newRoles.add(Role.ADMIN);
+        updated.setRoles(Collections.unmodifiableSet(newRoles));
+        return updated;
+    }
+
+    public static User getUpdatedByAddRolesFromZero() {
+        User updated = new User(guest);
+        updated.setRoles(List.of(Role.ADMIN, Role.USER));
         return updated;
     }
 }

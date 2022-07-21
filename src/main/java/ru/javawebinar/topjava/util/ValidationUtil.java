@@ -6,9 +6,15 @@ import org.springframework.lang.NonNull;
 import ru.javawebinar.topjava.model.AbstractBaseEntity;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
+import javax.validation.ConstraintViolationException;
+import javax.validation.Validator;
+
 public class ValidationUtil {
 
-    private ValidationUtil() {
+    private final Validator validator;
+
+    private ValidationUtil(Validator validator) {
+        this.validator = validator;
     }
 
     public static <T> T checkNotFoundWithId(T object, int id) {
@@ -51,5 +57,12 @@ public class ValidationUtil {
     public static Throwable getRootCause(@NonNull Throwable t) {
         Throwable rootCause = NestedExceptionUtils.getRootCause(t);
         return rootCause != null ? rootCause : t;
+    }
+
+    public <T> void validateOrThrow(T entity) {
+        var validationResult = validator.validate(entity);
+        if (!validationResult.isEmpty()) {
+            throw new ConstraintViolationException(validationResult);
+        }
     }
 }

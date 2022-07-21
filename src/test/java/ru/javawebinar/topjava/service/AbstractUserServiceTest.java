@@ -1,8 +1,6 @@
 package ru.javawebinar.topjava.service;
 
-import org.junit.FixMethodOrder;
 import org.junit.Test;
-import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import ru.javawebinar.topjava.model.Role;
@@ -17,7 +15,6 @@ import java.util.Set;
 import static org.junit.Assert.assertThrows;
 import static ru.javawebinar.topjava.UserTestData.*;
 
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public abstract class AbstractUserServiceTest extends AbstractServiceTest {
 
     @Autowired
@@ -68,6 +65,11 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     }
 
     @Test
+    public void getByEmailNotFound() {
+        assertThrows(NotFoundException.class, () -> service.getByEmail(NOT_FOUND_EMAIL));
+    }
+
+    @Test
     public void update() {
         User updated = getUpdated();
         service.update(updated);
@@ -75,20 +77,21 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void getAll() {
-        List<User> all = service.getAll();
-        USER_MATCHER.assertMatch(all, admin, guest, user);
-    }
-
-    @Test
-    public void notUsingCacheStep1() {
-        User updated = getUpdated();
+    public void addRole() {
+        User updated = getUpdatedByAddRoles();
         service.update(updated);
-        USER_MATCHER.assertMatch(service.getAll(), guest, getUpdated(), user);
+        USER_MATCHER.assertMatch(service.get(updated.id()), getUpdatedByAddRoles());
     }
 
     @Test
-    public void notUsingCacheStep2() {
+    public void addRoleFromZero() {
+        User updated = getUpdatedByAddRolesFromZero();
+        service.update(updated);
+        USER_MATCHER.assertMatch(service.get(updated.id()), getUpdatedByAddRolesFromZero());
+    }
+
+    @Test
+    public void getAll() {
         List<User> all = service.getAll();
         USER_MATCHER.assertMatch(all, admin, guest, user);
     }

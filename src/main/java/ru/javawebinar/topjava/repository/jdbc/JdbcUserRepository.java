@@ -14,9 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.javawebinar.topjava.model.Role;
 import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.repository.UserRepository;
+import ru.javawebinar.topjava.util.ValidationUtil;
 
-import javax.validation.ConstraintViolationException;
-import javax.validation.Validator;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -33,26 +32,23 @@ public class JdbcUserRepository implements UserRepository {
 
     private final SimpleJdbcInsert insertUser;
 
-    private final Validator validator;
+    private final ValidationUtil validationUtil;
 
     @Autowired
     public JdbcUserRepository(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate,
-                              Validator validator) {
+                              ValidationUtil validationUtil) {
         this.insertUser = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("users")
                 .usingGeneratedKeyColumns("id");
         this.jdbcTemplate = jdbcTemplate;
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
-        this.validator = validator;
+        this.validationUtil = validationUtil;
     }
 
     @Override
     @Transactional
     public User save(User user) {
-        var validationResult = validator.validate(user);
-        if (!validationResult.isEmpty()) {
-            throw new ConstraintViolationException(validationResult);
-        }
+        validationUtil.validateOrThrow(user);
         BeanPropertySqlParameterSource parameterSource = new BeanPropertySqlParameterSource(user);
         if (user.isNew()) {
             Number newKey = insertUser.executeAndReturnKey(parameterSource);
@@ -70,19 +66,10 @@ public class JdbcUserRepository implements UserRepository {
             }
             Set<Role> roles = user.getRoles();
             if (roles != null) {
-                Set<Role> oldRoles = getRoles(user.id());
-                if (roles.size() < oldRoles.size()) {
-                    Set<Role> removedRoles = new HashSet<>(oldRoles);
-                    removedRoles.removeAll(roles);
-                    var params = getStatementParamsForRoles(removedRoles, user.id());
-                    jdbcTemplate.batchUpdate("DELETE FROM user_roles WHERE role=? AND user_id=?", params);
-                } else if (roles.size() > oldRoles.size()) {
-                    Set<Role> newRoles = new HashSet<>(roles);
-                    newRoles.removeAll(oldRoles);
-                    insertRoles(newRoles, user.id());
+                jdbcTemplate.update("DELETE FROM user_roles WHERE user_id=?", user.id());
+                if (!roles.isEmpty()) {
+                    insertRoles(roles, user.id());
                 }
-                var params = getStatementParamsForRoles(roles, user.id());
-                jdbcTemplate.batchUpdate("UPDATE user_roles SET role=? WHERE user_id=?", params);
             }
         }
         return user;
@@ -94,7 +81,7 @@ public class JdbcUserRepository implements UserRepository {
     }
 
     private List<Object[]> getStatementParamsForRoles(Set<Role> roles, int userId) {
-        return roles.stream().map(r -> new Object[]{r.toString(), userId}).toList();
+        return roles.stream().map(r -> new Object[]{r.name(), userId}).toList();
     }
 
     @Override
@@ -122,12 +109,16 @@ public class JdbcUserRepository implements UserRepository {
     @Override
     public User getByEmail(String email) {
 //        return jdbcTemplate.queryForObject("SELECT * FROM users WHERE email=?", ROW_MAPPER, email);
-        List<User> users = jdbcTemplate.query(
-                "SELECT * FROM users LEFT JOIN user_roles ur ON users.id = ur.user_id WHERE email=? LIMIT 1",
-                USERS_ROW_MAPPER, email);
-        User user = Objects.requireNonNull(DataAccessUtils.singleResult(users));
-        Set<Role> roles = getRoles(user.id());
-        user.setRoles(roles);
+        // Используется Stream.distinct(), потому что DataAccessUtils.uniqueResult сравнивает по ссылкам, а ссылки тут
+        // разные у одинаковых объектов в отличие от Hibernate
+        List<User> users = jdbcTemplate.queryForStream(
+                "SELECT * FROM users LEFT JOIN user_roles ur ON users.id = ur.user_id WHERE email=?",
+                USERS_ROW_MAPPER, email).distinct().collect(Collectors.toList());
+        User user = DataAccessUtils.uniqueResult(users);
+        if (user != null) {
+            Set<Role> roles = getRoles(user.id());
+            user.setRoles(roles);
+        }
         return user;
     }
 
@@ -143,7 +134,7 @@ public class JdbcUserRepository implements UserRepository {
             });
         }
         List<User> users = jdbcTemplate.query("SELECT * FROM users ORDER BY name, email", USERS_ROW_MAPPER);
-        users.forEach(u -> u.setRoles(rolesByUserId.getOrDefault(u.id(), null)));
+        users.forEach(u -> u.setRoles(rolesByUserId.get(u.id())));
         return users;
     }
 }
