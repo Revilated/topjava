@@ -17,7 +17,6 @@ import ru.javawebinar.topjava.web.SecurityUtil;
 import ru.javawebinar.topjava.web.json.JsonUtil;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -53,12 +52,12 @@ class MealRestControllerTest extends AbstractControllerTest {
 
     @Test
     void getAllFiltered() throws Exception {
-        var startDateTime = LocalDate.of(2020, Month.JANUARY, 30).atStartOfDay();
-        var endDateTime = LocalDate.of(2020, Month.JANUARY, 30).atTime(LocalTime.MAX);
+        var startDate = LocalDate.of(2020, Month.JANUARY, 30);
+        var endDate = LocalDate.of(2020, Month.JANUARY, 30);
         var expected = MealsUtil.getTos(List.of(meal3, meal2, meal1), SecurityUtil.authUserCaloriesPerDay());
         perform(MockMvcRequestBuilders.get(REST_URL)
-                .param("startDateTime", startDateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
-                .param("endDateTime", endDateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+                .param("startDate", startDate.format(DateTimeFormatter.ISO_DATE))
+                .param("endDate", endDate.format(DateTimeFormatter.ISO_DATE))
         )
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -81,6 +80,7 @@ class MealRestControllerTest extends AbstractControllerTest {
         ResultActions action = perform(MockMvcRequestBuilders.post(REST_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(JsonUtil.writeValue(newMeal)))
+                .andDo(print())
                 .andExpect(status().isCreated());
         Meal created = MEAL_MATCHER.readFromJson(action);
         int newId = created.id();
