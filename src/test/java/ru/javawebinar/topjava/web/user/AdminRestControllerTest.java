@@ -1,7 +1,10 @@
 package ru.javawebinar.topjava.web.user;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIf;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -16,7 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static ru.javawebinar.topjava.MealTestData.MEAL_MATCHER;
 import static ru.javawebinar.topjava.MealTestData.meals;
 import static ru.javawebinar.topjava.UserTestData.*;
 
@@ -26,6 +28,9 @@ class AdminRestControllerTest extends AbstractControllerTest {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private Environment env;
 
     @Test
     void get() throws Exception {
@@ -88,12 +93,17 @@ class AdminRestControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @EnabledIf(value = "isDataJpa", disabledReason = "not datajpa profile")
     void getWithMeals() throws Exception {
-        ResultActions action = perform(MockMvcRequestBuilders.get(REST_URL + USER_ID + "/with-meals"))
+        var expected = new User(user);
+        expected.setMeals(meals);
+        perform(MockMvcRequestBuilders.get(REST_URL + USER_ID + "/with-meals"))
                 .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
-        var actual = USER_WITH_MEALS_MATCHER.readFromJson(action);
-        USER_MATCHER.assertMatch(actual, user);
-        MEAL_MATCHER.assertMatch(actual.getMeals(), meals);
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(USER_WITH_MEALS_MATCHER.contentJson(expected));
+    }
+
+    private boolean isDataJpa() {
+        return env.acceptsProfiles(Profiles.of(ru.javawebinar.topjava.Profiles.DATAJPA));
     }
 }
