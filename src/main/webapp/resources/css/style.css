@@ -15,6 +15,10 @@ dd {
     vertical-align: top;
 }
 
+a.delete {
+    color: inherit;
+}
+
 tr[data-meal-excess="false"] {
     color: green;
 }
