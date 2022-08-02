@@ -5,8 +5,11 @@ const ctx = {
     ajaxUrl: mealAjaxUrl
 };
 
+let filterForm;
+
 // $(document).ready(function () {
 $(function () {
+    filterForm = $('#filterForm');
     makeEditable(
         $("#datatable").DataTable({
             "paging": false,
@@ -39,3 +42,21 @@ $(function () {
         })
     );
 });
+
+function applyFilter() {
+    $.ajax({
+        type: "GET",
+        url: ctx.ajaxUrl + "filter",
+        data: filterForm.serialize()
+    }).done(function (data) {
+        updateTable(data);
+    });
+}
+
+function resetFilter() {
+    $("input[name='startDate']").val('')
+    $("input[name='endDate']").val('')
+    $("input[name='startTime']").val('')
+    $("input[name='endTime']").val('')
+    requestTableData()
+}

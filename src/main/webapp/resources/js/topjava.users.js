@@ -45,3 +45,13 @@ $(function () {
         })
     );
 });
+
+function enableUser(checkBox) {
+    let id = $(checkBox).closest("tr").attr("id")
+    $.ajax({
+        type: "PUT",
+        url: ctx.ajaxUrl + id + "/enable?isEnabled=" + checkBox.checked,
+    }).done(function () {
+        requestTableData();
+    });
+}
