@@ -30,7 +30,7 @@
             <dd><input type="time" name="endTime"></dd>
         </dl>
     </form>
-    <button class="btn btn-primary" onclick="applyFilter()">
+    <button class="btn btn-primary" onclick="requestFilteredTabledData()">
         <span class="fa fa-filter"></span>
         <spring:message code="meal.filter"/>
     </button>

@@ -9,6 +9,7 @@ import ru.javawebinar.topjava.model.User;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping(value = AdminRestController.REST_URL, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -51,10 +52,13 @@ public class AdminRestController extends AbstractUserController {
         super.update(user, id);
     }
 
-    @Override
-    @PutMapping(value = "/{id}/enable")
+    @PatchMapping(value = "/{id}/enable", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void enable(@PathVariable int id, @RequestParam boolean isEnabled) {
+    public void enable(@PathVariable int id, @RequestBody Map<String, Boolean> isEnabledField) {
+        Boolean isEnabled = isEnabledField.get("isEnabled");
+        if (isEnabled == null) {
+            throw new IllegalArgumentException("isEnabled field not found");
+        }
         super.enable(id, isEnabled);
     }
 

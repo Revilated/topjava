@@ -9,7 +9,6 @@ let filterForm;
 
 // $(document).ready(function () {
 $(function () {
-    filterForm = $('#filterForm');
     makeEditable(
         $("#datatable").DataTable({
             "paging": false,
@@ -43,17 +42,18 @@ $(function () {
     );
 });
 
-function requestTableData() {
-    if (hasFilter()) {
-        applyFilter()
-    } else {
-        $.get(ctx.ajaxUrl, function (data) {
-            updateTable(data)
-        });
+requestTableData = (function (_super) {
+    return function () {
+        if (hasFilter()) {
+            requestFilteredTabledData();
+        } else {
+            _super.apply(this)
+        }
     }
-}
+})(requestTableData)
 
-function applyFilter() {
+function requestFilteredTabledData() {
+    filterForm = $('#filterForm');
     $.ajax({
         type: "GET",
         url: ctx.ajaxUrl + "filter",
@@ -64,14 +64,14 @@ function applyFilter() {
 }
 
 function resetFilter() {
-    $("input[name='startDate']").val('')
-    $("input[name='endDate']").val('')
-    $("input[name='startTime']").val('')
-    $("input[name='endTime']").val('')
-    filterForm = undefined
-    requestTableData()
+    $("input[name='startDate']").val('');
+    $("input[name='endDate']").val('');
+    $("input[name='startTime']").val('');
+    $("input[name='endTime']").val('');
+    filterForm = undefined;
+    requestTableData();
 }
 
 function hasFilter() {
-    return filterForm !== undefined
+    return filterForm !== undefined;
 }

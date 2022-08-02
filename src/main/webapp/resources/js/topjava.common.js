@@ -27,8 +27,9 @@ function deleteRow(id) {
         url: ctx.ajaxUrl + id,
         type: "DELETE"
     }).done(function () {
-        requestTableData();
         successNoty("Deleted");
+    }).always(function () {
+        requestTableData();
     });
 }
 
@@ -38,7 +39,7 @@ function updateTable(data) {
 
 function requestTableData() {
     $.get(ctx.ajaxUrl, function (data) {
-        updateTable(data)
+        updateTable(data);
     });
 }
 
@@ -80,5 +81,5 @@ function failNoty(jqXHR) {
         type: "error",
         layout: "bottomRight"
     });
-    failedNote.show()
+    failedNote.show();
 }

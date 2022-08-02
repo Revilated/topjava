@@ -47,11 +47,15 @@ $(function () {
 });
 
 function enableUser(checkBox) {
-    let id = $(checkBox).closest("tr").attr("id")
+    let tr = $(checkBox).closest("tr");
+    let id = tr.attr("id");
     $.ajax({
-        type: "PUT",
+        type: "PATCH",
         url: ctx.ajaxUrl + id + "/enable?isEnabled=" + checkBox.checked,
     }).done(function () {
+        tr.attr("data-user-enabled", checkBox.checked);
+        successNoty(checkBox.checked ? "Enabled" : "Disabled");
+    }).fail(function () {
         requestTableData();
     });
 }
