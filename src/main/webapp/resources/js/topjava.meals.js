@@ -64,10 +64,7 @@ function requestFilteredTabledData() {
 }
 
 function resetFilter() {
-    $("input[name='startDate']").val('');
-    $("input[name='endDate']").val('');
-    $("input[name='startTime']").val('');
-    $("input[name='endTime']").val('');
+    filterForm[0].reset()
     filterForm = undefined;
     requestTableData();
 }

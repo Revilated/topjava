@@ -11,8 +11,6 @@ import ru.javawebinar.topjava.util.exception.NotFoundException;
 import ru.javawebinar.topjava.web.AbstractControllerTest;
 import ru.javawebinar.topjava.web.json.JsonUtil;
 
-import java.util.Map;
-
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -69,7 +67,8 @@ class AdminRestControllerTest extends AbstractControllerTest {
         disabled.setEnabled(false);
         perform(MockMvcRequestBuilders.patch(REST_URL + USER_ID + "/enable")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(JsonUtil.writeValue(Map.of("isEnabled", false))))
+                .content(Boolean.FALSE.toString()))
+                .andDo(print())
                 .andExpect(status().isNoContent());
         USER_MATCHER.assertMatch(userService.get(USER_ID), disabled);
     }

@@ -62,6 +62,6 @@ public class UserService {
     public void enable(int id, boolean isEnabled) {
         User user = get(id);
         user.setEnabled(isEnabled);
-        update(user);
+        repository.save(user);
     }
 }

@@ -51,7 +51,9 @@ function enableUser(checkBox) {
     let id = tr.attr("id");
     $.ajax({
         type: "PATCH",
-        url: ctx.ajaxUrl + id + "/enable?isEnabled=" + checkBox.checked,
+        contentType: "application/json",
+        url: ctx.ajaxUrl + id + "/enable",
+        data: checkBox.checked.toString()
     }).done(function () {
         tr.attr("data-user-enabled", checkBox.checked);
         successNoty(checkBox.checked ? "Enabled" : "Disabled");
