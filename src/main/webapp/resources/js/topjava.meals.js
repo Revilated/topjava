@@ -43,6 +43,16 @@ $(function () {
     );
 });
 
+function requestTableData() {
+    if (hasFilter()) {
+        applyFilter()
+    } else {
+        $.get(ctx.ajaxUrl, function (data) {
+            updateTable(data)
+        });
+    }
+}
+
 function applyFilter() {
     $.ajax({
         type: "GET",
@@ -58,5 +68,10 @@ function resetFilter() {
     $("input[name='endDate']").val('')
     $("input[name='startTime']").val('')
     $("input[name='endTime']").val('')
+    filterForm = undefined
     requestTableData()
+}
+
+function hasFilter() {
+    return filterForm !== undefined
 }
