@@ -9,20 +9,53 @@ const ctx = {
             url: mealAjaxUrl + "filter",
             data: $("#filter").serialize()
         }).done(updateTableByData);
-    }
+    },
+    ajaxGetDataType: "ui_datetime_json"
 }
 
-function createDatePicker(id) {
-    $("#" + id).datetimepicker({
+function createRangeDatePickers(startId, endId) {
+    let startDatePicker = $("#" + startId)
+    let endDatePicker = $("#" + endId)
+    startDatePicker.datetimepicker({
         timepicker: false,
-        format: "Y-m-d"
+        format: "Y-m-d",
+        onShow: function (ct) {
+            this.setOptions({
+                maxDate: endDatePicker.val() ? endDatePicker.val() : false
+            })
+        }
+    })
+    endDatePicker.datetimepicker({
+        timepicker: false,
+        format: "Y-m-d",
+        onShow: function (ct) {
+            this.setOptions({
+                minDate: startDatePicker.val() ? startDatePicker.val() : false
+            })
+        }
     })
 }
 
-function createTimePicker(id) {
-    $("#" + id).datetimepicker({
+function createRangeTimePickers(startId, endId) {
+    let startTimePicker = $("#" + startId)
+    let endTimePicker = $("#" + endId)
+    startTimePicker.datetimepicker({
         datepicker: false,
-        format: "H:i"
+        format: "H:i",
+        onShow: function (ct){
+            this.setOptions({
+                maxTime: endTimePicker.val() ? endTimePicker.val() : false
+            })
+        }
+    })
+    endTimePicker.datetimepicker({
+        datepicker: false,
+        format: "H:i",
+        onShow: function (ct){
+            this.setOptions({
+                minTime: startTimePicker.val() ? startTimePicker.val() : false
+            })
+        }
     })
 }
 
@@ -38,10 +71,24 @@ function clearFilter() {
 }
 
 $(function () {
-    createDatePicker("startDate")
-    createDatePicker("endDate")
-    createTimePicker("startTime")
-    createTimePicker("endTime")
+    $.ajaxSetup({
+        contents: {
+            ui_datetime_json: "ui_datetime_json"
+        },
+        converters: {
+            "json ui_datetime_json": function (data) {
+                if (data.hasOwnProperty("dateTime")) {
+                    let newData = Object.assign({}, data);
+                    newData.dateTime = data.dateTime.substring(0, 16).replace("T", " ");
+                    return newData;
+                } else {
+                    return data;
+                }
+            }
+        }
+    });
+    createRangeDatePickers("startDate", "endDate")
+    createRangeTimePickers("startTime", "endTime")
     createDateTimePicker("dateTime")
     makeEditable(
         $("#datatable").DataTable({
@@ -56,7 +103,7 @@ $(function () {
                     "data": "dateTime",
                     "render": function (date, type, row) {
                         if (type === "display") {
-                            return date.replace("T", " ")
+                            return date.substring(0, 16).replace("T", " ")
                         }
                         return date;
                     }
