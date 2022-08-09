@@ -70,6 +70,10 @@ function clearFilter() {
     $.get(mealAjaxUrl, updateTableByData);
 }
 
+function formatDateTime(dateTime) {
+    return dateTime.substring(0, 16).replace("T", " ")
+}
+
 $(function () {
     $.ajaxSetup({
         contents: {
@@ -79,7 +83,7 @@ $(function () {
             "json ui_datetime_json": function (data) {
                 if (data.hasOwnProperty("dateTime")) {
                     let newData = Object.assign({}, data);
-                    newData.dateTime = data.dateTime.substring(0, 16).replace("T", " ");
+                    newData.dateTime = formatDateTime(data.dateTime)
                     return newData;
                 } else {
                     return data;
@@ -101,11 +105,11 @@ $(function () {
             "columns": [
                 {
                     "data": "dateTime",
-                    "render": function (date, type, row) {
+                    "render": function (dateTime, type, row) {
                         if (type === "display") {
-                            return date.substring(0, 16).replace("T", " ")
+                            return formatDateTime(dateTime)
                         }
-                        return date;
+                        return dateTime;
                     }
                 },
                 {
