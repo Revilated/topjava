@@ -8,8 +8,24 @@ function makeEditable(datatableApi) {
         failNoty(jqXHR);
     });
 
-    // solve problem with cache in IE: https://stackoverflow.com/a/4303862/548473
-    $.ajaxSetup({cache: false});
+    $.ajaxSetup({
+        // solve problem with cache in IE: https://stackoverflow.com/a/4303862/548473
+        cache: false,
+        contents: {
+            ui_datetime_json: "ui_datetime_json"
+        },
+        converters: {
+            "json ui_datetime_json": function (data) {
+                if (data.hasOwnProperty("dateTime")) {
+                    let newData = Object.assign({}, data);
+                    newData.dateTime = data.dateTime.substring(0, 16).replace("T", " ");
+                    return newData;
+                } else {
+                    return data;
+                }
+            }
+        }
+    });
 }
 
 function add() {
@@ -26,7 +42,7 @@ function updateRow(id) {
             form.find("input[name='" + key + "']").val(value);
         });
         $('#editRow').modal();
-    });
+    }, "ui_datetime_json");
 }
 
 function deleteRow(id) {

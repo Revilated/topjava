@@ -12,12 +12,37 @@ const ctx = {
     }
 }
 
+function createDatePicker(id) {
+    $("#" + id).datetimepicker({
+        timepicker: false,
+        format: "Y-m-d"
+    })
+}
+
+function createTimePicker(id) {
+    $("#" + id).datetimepicker({
+        datepicker: false,
+        format: "H:i"
+    })
+}
+
+function createDateTimePicker(id) {
+    $("#" + id).datetimepicker({
+        format: "Y-m-d H:i"
+    });
+}
+
 function clearFilter() {
     $("#filter")[0].reset();
     $.get(mealAjaxUrl, updateTableByData);
 }
 
 $(function () {
+    createDatePicker("startDate")
+    createDatePicker("endDate")
+    createTimePicker("startTime")
+    createTimePicker("endTime")
+    createDateTimePicker("dateTime")
     makeEditable(
         $("#datatable").DataTable({
             "ajax": {
