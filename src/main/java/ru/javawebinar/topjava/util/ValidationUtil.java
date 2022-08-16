@@ -1,21 +1,28 @@
 package ru.javawebinar.topjava.util;
 
 
+import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.core.NestedExceptionUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import ru.javawebinar.topjava.HasId;
 import ru.javawebinar.topjava.util.exception.IllegalRequestDataException;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import javax.validation.*;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ValidationUtil {
 
     private static final Validator validator;
+    private static final Map<String, ErrorKey> CONSTRAINTS_LOCALIZED_ERRORS = Map.of(
+            "users_unique_email_idx", new ErrorKey("userTo", "email", "error.duplicateEmail")
+    );
 
     static {
         //  From Javadoc: implementations are thread-safe and instances are typically cached and reused.
@@ -78,10 +85,50 @@ public class ValidationUtil {
     }
 
     public static ResponseEntity<String> getErrorResponse(BindingResult result) {
-        return ResponseEntity.unprocessableEntity().body(
-                result.getFieldErrors().stream()
-                        .map(fe -> String.format("[%s] %s", fe.getField(), fe.getDefaultMessage()))
-                        .collect(Collectors.joining("<br>"))
-        );
+        return ResponseEntity.unprocessableEntity().body(getBindingResultMessage(result));
+    }
+
+    public static String getBindingResultMessage(BindingResult result) {
+        return result.getFieldErrors().stream()
+                .map(fe -> String.format("[%s] %s", fe.getField(), fe.getDefaultMessage()))
+                .collect(Collectors.joining("<br>"));
+    }
+
+    public static Optional<ErrorKey> findLocalizedError(String text) {
+        if (text == null) {
+            return Optional.empty();
+        }
+        String lowercaseText = text.toLowerCase();
+        for (var entry : CONSTRAINTS_LOCALIZED_ERRORS.entrySet()) {
+            if (lowercaseText.contains(entry.getKey())) {
+                return Optional.of(entry.getValue());
+            }
+        }
+        return Optional.empty();
+    }
+
+    public static class ErrorKey {
+        private final String objectName;
+        private final String field;
+        private final String messageKey;
+
+        private ErrorKey(String objectName, String field, String messageKey) {
+            this.objectName = objectName;
+            this.field = field;
+            this.messageKey = messageKey;
+        }
+
+        public String getField() {
+            return field;
+        }
+
+        public FieldError toFieldError(MessageSourceAccessor messageSource, Object rejectedValue) {
+            return new FieldError(objectName, field, rejectedValue, false, new String[]{}, new Object[]{},
+                    messageSource.getMessage(messageKey));
+        }
+
+        public FieldError toFieldError(MessageSourceAccessor messageSource) {
+            return new FieldError(objectName, field, messageSource.getMessage(messageKey));
+        }
     }
 }
