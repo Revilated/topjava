@@ -21,7 +21,9 @@ public class ValidationUtil {
 
     private static final Validator validator;
     private static final Map<String, ErrorKey> CONSTRAINTS_LOCALIZED_ERRORS = Map.of(
-            "users_unique_email_idx", new ErrorKey("userTo", "email", "error.duplicateEmail")
+            "users_unique_email_idx", new ErrorKey("userTo", "email", "error.duplicateEmail"),
+            "meals_unique_user_datetime_idx", new ErrorKey("meal", "dateTime",
+                    "error.duplicateMealDateTime")
     );
 
     static {
