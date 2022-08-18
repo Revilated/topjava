@@ -4,16 +4,16 @@ package ru.javawebinar.topjava.util;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.core.NestedExceptionUtils;
 import org.springframework.lang.NonNull;
-import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import ru.javawebinar.topjava.HasId;
 import ru.javawebinar.topjava.util.exception.IllegalRequestDataException;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import javax.validation.*;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class ValidationUtil {
 
@@ -83,10 +83,10 @@ public class ValidationUtil {
         return rootCause != null ? rootCause : t;
     }
 
-    public static String getBindingResultMessage(BindingResult result) {
-        return result.getFieldErrors().stream()
+    public static List<String> toMessages(List<FieldError> errors) {
+        return errors.stream()
                 .map(fe -> String.format("[%s] %s", fe.getField(), fe.getDefaultMessage()))
-                .collect(Collectors.joining("<br>"));
+                .toList();
     }
 
     public static Optional<String> findLocalizedError(String text, MessageSourceAccessor messageSource) {

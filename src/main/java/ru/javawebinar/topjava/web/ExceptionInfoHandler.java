@@ -21,6 +21,7 @@ import ru.javawebinar.topjava.util.exception.IllegalRequestDataException;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 import static ru.javawebinar.topjava.util.ValidationUtil.findLocalizedError;
 import static ru.javawebinar.topjava.util.exception.ErrorType.*;
@@ -64,7 +65,7 @@ public class ExceptionInfoHandler {
     @ExceptionHandler({BindException.class})
     public ErrorInfo validationError(HttpServletRequest req, BindException e) {
         return logAndGetErrorInfo(req, e, false, VALIDATION_ERROR,
-                ValidationUtil.getBindingResultMessage(e.getBindingResult()));
+                ValidationUtil.toMessages(e.getFieldErrors()));
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -76,15 +77,20 @@ public class ExceptionInfoHandler {
 
     private ErrorInfo logAndGetErrorInfo(HttpServletRequest req, Throwable e, boolean logException,
                                          ErrorType errorType, String detail) {
+        return logAndGetErrorInfo(req, e, logException, errorType, List.of(detail));
+    }
+
+    private ErrorInfo logAndGetErrorInfo(HttpServletRequest req, Throwable e, boolean logException,
+                                         ErrorType errorType, List<String> details) {
         if (logException) {
             logError(log, req, e, errorType);
         } else {
             logWarn(log, req, e, errorType);
         }
-        return getErrorInfo(req, errorType, detail);
+        return getErrorInfo(req, errorType, details);
     }
 
-    private static ErrorInfo getErrorInfo(HttpServletRequest req, ErrorType errorType, String detail) {
-        return new ErrorInfo(req.getRequestURL(), errorType, detail);
+    private static ErrorInfo getErrorInfo(HttpServletRequest req, ErrorType errorType, List<String> details) {
+        return new ErrorInfo(req.getRequestURL(), errorType, details);
     }
 }
