@@ -13,7 +13,6 @@ import ru.javawebinar.topjava.util.exception.ErrorType;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 import ru.javawebinar.topjava.web.AbstractControllerTest;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -120,8 +119,8 @@ class AdminRestControllerTest extends AbstractControllerTest {
                 .content(jsonWithPassword(updated, updated.getPassword())))
                 .andDo(print())
                 .andExpect(status().isConflict())
-                .andExpect(content().string(containsString("User with this email already exists")))
-                .andExpect(content().string(containsString(ErrorType.DATA_ERROR.toString())));
+                .andExpect(detail("User with this email already exists"))
+                .andExpect(errorType(ErrorType.DATA_ERROR));
     }
 
     @Test
@@ -161,8 +160,8 @@ class AdminRestControllerTest extends AbstractControllerTest {
                 .content(jsonWithPassword(newUser, newUser.getPassword())))
                 .andDo(print())
                 .andExpect(status().isConflict())
-                .andExpect(content().string(containsString("User with this email already exists")))
-                .andExpect(content().string(containsString(ErrorType.DATA_ERROR.toString())));
+                .andExpect(detail("User with this email already exists"))
+                .andExpect(errorType(ErrorType.DATA_ERROR));
     }
 
     @Test

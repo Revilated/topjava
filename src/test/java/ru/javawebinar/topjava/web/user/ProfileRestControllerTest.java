@@ -15,7 +15,6 @@ import ru.javawebinar.topjava.util.exception.ErrorType;
 import ru.javawebinar.topjava.web.AbstractControllerTest;
 import ru.javawebinar.topjava.web.json.JsonUtil;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -109,8 +108,8 @@ class ProfileRestControllerTest extends AbstractControllerTest {
                 .content(JsonUtil.writeValue(updated)))
                 .andDo(print())
                 .andExpect(status().isConflict())
-                .andExpect(content().string(containsString("User with this email already exists")))
-                .andExpect(content().string(containsString(ErrorType.DATA_ERROR.toString())));
+                .andExpect(detail("User with this email already exists"))
+                .andExpect(errorType(ErrorType.DATA_ERROR));
     }
 
     @Test

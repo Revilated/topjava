@@ -1,6 +1,5 @@
 package ru.javawebinar.topjava.web.user;
 
-import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -15,19 +14,13 @@ import ru.javawebinar.topjava.web.SecurityUtil;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
-import static ru.javawebinar.topjava.util.ValidationUtil.findLocalizedError;
+import static ru.javawebinar.topjava.util.ValidationUtil.findConstraintErrorCode;
 import static ru.javawebinar.topjava.util.exception.ErrorType.DATA_ERROR;
 import static ru.javawebinar.topjava.web.ExceptionUtil.logError;
 
 @Controller
 @RequestMapping("/profile")
 public class ProfileUIController extends AbstractUserController {
-
-    private final MessageSourceAccessor messageSource;
-
-    public ProfileUIController(MessageSourceAccessor messageSource) {
-        this.messageSource = messageSource;
-    }
 
     @GetMapping
     public String profile() {
@@ -36,7 +29,7 @@ public class ProfileUIController extends AbstractUserController {
 
     @PostMapping
     public String updateProfile(HttpServletRequest req, @Valid UserTo userTo, BindingResult result, SessionStatus status) {
-        invokeOrSetInvalid(req, result, () -> super.update(userTo, SecurityUtil.authUserId()));
+        validateDataIntegrityViolation(req, result, () -> super.update(userTo, SecurityUtil.authUserId()));
         if (result.hasErrors()) {
             return "profile";
         } else {
@@ -56,7 +49,7 @@ public class ProfileUIController extends AbstractUserController {
     @PostMapping("/register")
     public String saveRegister(HttpServletRequest req, @Valid UserTo userTo, BindingResult result, SessionStatus status,
                                ModelMap model) {
-        invokeOrSetInvalid(req, result, () -> super.create(userTo));
+        validateDataIntegrityViolation(req, result, () -> super.create(userTo));
         if (result.hasErrors()) {
             model.addAttribute("register", true);
             return "profile";
@@ -66,22 +59,22 @@ public class ProfileUIController extends AbstractUserController {
         }
     }
 
-    private void invokeOrSetInvalid(HttpServletRequest req, BindingResult bindingResult, Runnable code) {
+    private void validateDataIntegrityViolation(HttpServletRequest req, BindingResult bindingResult, Runnable code) {
         try {
             if (!bindingResult.hasErrors()) {
                 code.run();
             }
         } catch (DataIntegrityViolationException ex) {
             logError(log, req, ex, DATA_ERROR);
-            findLocalizedError(ex.getMessage(), messageSource).ifPresentOrElse(
-                    error -> {
-                        if (error.toLowerCase().contains("email")) {
-                            bindingResult.rejectValue("email", error);
+            findConstraintErrorCode(ex.getMessage()).ifPresentOrElse(
+                    errorCode -> {
+                        if (errorCode.toLowerCase().contains("email")) {
+                            bindingResult.rejectValue("email", errorCode);
                         } else {
-                            bindingResult.reject(error);
+                            bindingResult.reject(errorCode);
                         }
                     },
-                    () -> bindingResult.reject(messageSource.getMessage("error.invalidInput"))
+                    () -> bindingResult.reject("error.invalidInput")
             );
         }
     }

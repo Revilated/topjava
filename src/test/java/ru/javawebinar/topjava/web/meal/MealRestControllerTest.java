@@ -15,7 +15,6 @@ import ru.javawebinar.topjava.util.exception.NotFoundException;
 import ru.javawebinar.topjava.web.AbstractControllerTest;
 import ru.javawebinar.topjava.web.json.JsonUtil;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -105,8 +104,8 @@ class MealRestControllerTest extends AbstractControllerTest {
                 .content(JsonUtil.writeValue(updated)))
                 .andDo(print())
                 .andExpect(status().isConflict())
-                .andExpect(content().string(containsString("Meal with such date and time already exists")))
-                .andExpect(content().string(containsString(ErrorType.DATA_ERROR.toString())));
+                .andExpect(detail("Meal with such date and time already exists"))
+                .andExpect(errorType(ErrorType.DATA_ERROR));
     }
 
     @Test
@@ -145,8 +144,8 @@ class MealRestControllerTest extends AbstractControllerTest {
                 .content(JsonUtil.writeValue(newMeal)))
                 .andDo(print())
                 .andExpect(status().isConflict())
-                .andExpect(content().string(containsString("Meal with such date and time already exists")))
-                .andExpect(content().string(containsString(ErrorType.DATA_ERROR.toString())));
+                .andExpect(detail("Meal with such date and time already exists"))
+                .andExpect(errorType(ErrorType.DATA_ERROR));
     }
 
     @Test

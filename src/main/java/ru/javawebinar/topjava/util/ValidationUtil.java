@@ -83,20 +83,20 @@ public class ValidationUtil {
         return rootCause != null ? rootCause : t;
     }
 
-    public static List<String> toMessages(List<FieldError> errors) {
+    public static List<String> toLocalizedMessages(MessageSourceAccessor messageSource, List<FieldError> errors) {
         return errors.stream()
-                .map(fe -> String.format("[%s] %s", fe.getField(), fe.getDefaultMessage()))
+                .map(fe -> String.format("[%s] %s", fe.getField(), messageSource.getMessage(fe)))
                 .toList();
     }
 
-    public static Optional<String> findLocalizedError(String text, MessageSourceAccessor messageSource) {
+    public static Optional<String> findConstraintErrorCode(String text) {
         if (text == null) {
             return Optional.empty();
         }
         String lowercaseText = text.toLowerCase();
         for (var entry : CONSTRAINTS_BY_ERROR_KEYS.entrySet()) {
             if (lowercaseText.contains(entry.getKey())) {
-                return Optional.of(messageSource.getMessage(entry.getValue()));
+                return Optional.of(entry.getValue());
             }
         }
         return Optional.empty();

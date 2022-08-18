@@ -23,7 +23,7 @@ import ru.javawebinar.topjava.util.exception.NotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
-import static ru.javawebinar.topjava.util.ValidationUtil.findLocalizedError;
+import static ru.javawebinar.topjava.util.ValidationUtil.findConstraintErrorCode;
 import static ru.javawebinar.topjava.util.exception.ErrorType.*;
 import static ru.javawebinar.topjava.web.ExceptionUtil.logError;
 import static ru.javawebinar.topjava.web.ExceptionUtil.logWarn;
@@ -49,8 +49,8 @@ public class ExceptionInfoHandler {
     @ResponseStatus(HttpStatus.CONFLICT)  // 409
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ErrorInfo conflict(HttpServletRequest req, DataIntegrityViolationException e) {
-        return findLocalizedError(e.getMessage(), messageSource)
-                .map(error -> logAndGetErrorInfo(req, e, true, DATA_ERROR, error))
+        return findConstraintErrorCode(e.getMessage())
+                .map(errorCode -> logAndGetErrorInfo(req, e, true, DATA_ERROR, messageSource.getMessage(errorCode)))
                 .orElseGet(() -> logAndGetErrorInfo(req, e, true, DATA_ERROR, e.toString()));
     }
 
@@ -65,7 +65,7 @@ public class ExceptionInfoHandler {
     @ExceptionHandler({BindException.class})
     public ErrorInfo validationError(HttpServletRequest req, BindException e) {
         return logAndGetErrorInfo(req, e, false, VALIDATION_ERROR,
-                ValidationUtil.toMessages(e.getFieldErrors()));
+                ValidationUtil.toLocalizedMessages(messageSource, e.getFieldErrors()));
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
