@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.service.MealService;
+import ru.javawebinar.topjava.util.exception.ErrorType;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 import ru.javawebinar.topjava.web.AbstractControllerTest;
 import ru.javawebinar.topjava.web.json.JsonUtil;
@@ -104,7 +105,8 @@ class MealRestControllerTest extends AbstractControllerTest {
                 .content(JsonUtil.writeValue(updated)))
                 .andDo(print())
                 .andExpect(status().isConflict())
-                .andExpect(content().string(containsString("Meal with such date and time already exists")));
+                .andExpect(content().string(containsString("Meal with such date and time already exists")))
+                .andExpect(content().string(containsString(ErrorType.DATA_ERROR.toString())));
     }
 
     @Test
@@ -143,7 +145,8 @@ class MealRestControllerTest extends AbstractControllerTest {
                 .content(JsonUtil.writeValue(newMeal)))
                 .andDo(print())
                 .andExpect(status().isConflict())
-                .andExpect(content().string(containsString("Meal with such date and time already exists")));
+                .andExpect(content().string(containsString("Meal with such date and time already exists")))
+                .andExpect(content().string(containsString(ErrorType.DATA_ERROR.toString())));
     }
 
     @Test

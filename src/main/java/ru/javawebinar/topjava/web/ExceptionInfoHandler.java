@@ -9,7 +9,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,6 +24,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import static ru.javawebinar.topjava.util.ValidationUtil.findLocalizedError;
 import static ru.javawebinar.topjava.util.exception.ErrorType.*;
+import static ru.javawebinar.topjava.web.ExceptionUtil.logError;
+import static ru.javawebinar.topjava.web.ExceptionUtil.logWarn;
 
 @RestControllerAdvice(annotations = RestController.class)
 @Order(Ordered.HIGHEST_PRECEDENCE + 5)
@@ -41,69 +42,49 @@ public class ExceptionInfoHandler {
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
     @ExceptionHandler(NotFoundException.class)
     public ErrorInfo handleError(HttpServletRequest req, NotFoundException e) {
-        return logAndGetErrorInfo(req, e, false, DATA_NOT_FOUND);
+        return logAndGetErrorInfo(req, e, false, DATA_NOT_FOUND, e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.CONFLICT)  // 409
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ErrorInfo conflict(HttpServletRequest req, DataIntegrityViolationException e) {
-        String rootMsg = ValidationUtil.getRootCause(e).getMessage();
-        return findLocalizedError(rootMsg)
-                .map(error -> logAndGetErrorInfo(req, e, error.toFieldError(messageSource).getDefaultMessage()))
-                .orElseGet(() -> logAndGetErrorInfo(req, e, true, DATA_ERROR));
+        return findLocalizedError(e.getMessage(), messageSource)
+                .map(error -> logAndGetErrorInfo(req, e, true, DATA_ERROR, error))
+                .orElseGet(() -> logAndGetErrorInfo(req, e, true, DATA_ERROR, e.toString()));
     }
 
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)  // 422
     @ExceptionHandler({IllegalRequestDataException.class, MethodArgumentTypeMismatchException.class, HttpMessageNotReadableException.class})
     public ErrorInfo illegalRequestDataError(HttpServletRequest req, Exception e) {
-        return logAndGetErrorInfo(req, e, false, VALIDATION_ERROR);
+        Throwable rootCause = ValidationUtil.getRootCause(e);
+        return logAndGetErrorInfo(req, rootCause, false, VALIDATION_ERROR, rootCause.toString());
     }
 
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)  // 422
-    @ExceptionHandler({BindException.class, MethodArgumentNotValidException.class})
+    @ExceptionHandler({BindException.class})
     public ErrorInfo validationError(HttpServletRequest req, BindException e) {
-        return logAndGetErrorInfo(req, e);
+        return logAndGetErrorInfo(req, e, false, VALIDATION_ERROR,
+                ValidationUtil.getBindingResultMessage(e.getBindingResult()));
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
     public ErrorInfo handleError(HttpServletRequest req, Exception e) {
-        return logAndGetErrorInfo(req, e, true, APP_ERROR);
+        Throwable rootCause = ValidationUtil.getRootCause(e);
+        return logAndGetErrorInfo(req, rootCause, true, APP_ERROR, rootCause.toString());
     }
 
-    //    https://stackoverflow.com/questions/538870/should-private-helper-methods-be-static-if-they-can-be-static
-    private ErrorInfo logAndGetErrorInfo(HttpServletRequest req, Exception e, boolean logException,
-                                         ErrorType errorType) {
-        Throwable rootCause = ValidationUtil.getRootCause(e);
+    private ErrorInfo logAndGetErrorInfo(HttpServletRequest req, Throwable e, boolean logException,
+                                         ErrorType errorType, String detail) {
         if (logException) {
-            logError(req, rootCause, errorType);
+            logError(log, req, e, errorType);
         } else {
-            logWarn(req, rootCause, errorType);
+            logWarn(log, req, e, errorType);
         }
-        return getErrorInfo(req, errorType, rootCause.toString());
-    }
-
-    private ErrorInfo logAndGetErrorInfo(HttpServletRequest req, BindException e) {
-        logWarn(req, e, VALIDATION_ERROR);
-        var detail = ValidationUtil.getBindingResultMessage(e.getBindingResult());
-        return getErrorInfo(req, VALIDATION_ERROR, detail);
-    }
-
-    private ErrorInfo logAndGetErrorInfo(HttpServletRequest req, DataIntegrityViolationException e, String detail) {
-        Throwable rootCause = ValidationUtil.getRootCause(e);
-        logError(req, rootCause, DATA_ERROR);
-        return getErrorInfo(req, DATA_ERROR, detail);
+        return getErrorInfo(req, errorType, detail);
     }
 
     private static ErrorInfo getErrorInfo(HttpServletRequest req, ErrorType errorType, String detail) {
         return new ErrorInfo(req.getRequestURL(), errorType, detail);
-    }
-
-    private void logError(HttpServletRequest req, Throwable throwable, ErrorType errorType) {
-        log.error(errorType + " at request " + req.getRequestURL(), throwable);
-    }
-
-    private void logWarn(HttpServletRequest req, Throwable throwable, ErrorType errorType) {
-        log.warn("{} at request  {}: {}", errorType, req.getRequestURL(), throwable.toString());
     }
 }

@@ -11,6 +11,7 @@ import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.service.UserService;
 import ru.javawebinar.topjava.to.UserTo;
 import ru.javawebinar.topjava.util.UserUtil;
+import ru.javawebinar.topjava.util.exception.ErrorType;
 import ru.javawebinar.topjava.web.AbstractControllerTest;
 import ru.javawebinar.topjava.web.json.JsonUtil;
 
@@ -108,7 +109,8 @@ class ProfileRestControllerTest extends AbstractControllerTest {
                 .content(JsonUtil.writeValue(updated)))
                 .andDo(print())
                 .andExpect(status().isConflict())
-                .andExpect(content().string(containsString("User with this email already exists")));
+                .andExpect(content().string(containsString("User with this email already exists")))
+                .andExpect(content().string(containsString(ErrorType.DATA_ERROR.toString())));
     }
 
     @Test

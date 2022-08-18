@@ -2,6 +2,7 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <%@taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <nav class="navbar navbar-expand-md navbar-dark bg-dark py-0">
     <div class="container">
@@ -32,12 +33,13 @@
                 </li>
             </sec:authorize>
             <li class="nav-item dropdown">
+                <spring:eval var="uriBuilder" expression="T(org.springframework.web.servlet.support.ServletUriComponentsBuilder).fromPath(requestScope['javax.servlet.forward.request_uri']).query(pageContext.request.getQueryString())"/>
                 <a class="dropdown-toggle nav-link my-1 my-2" data-toggle="dropdown" aria-expanded="false">
                     ${pageContext.response.locale.language}
                 </a>
                 <div class="dropdown-menu">
-                    <a class="dropdown-item" href="${pageContext.request.contextPath}/login?locale=en">English</a>
-                    <a class="dropdown-item" href="${pageContext.request.contextPath}/login?locale=ru">Русский</a>
+                    <a class="dropdown-item" href="${uriBuilder.replaceQueryParam('locale', 'en').toUriString()}">English</a>
+                    <a class="dropdown-item" href="${uriBuilder.replaceQueryParam('locale', 'ru').toUriString()}">Русский</a>
                 </div>
             </li>
         </ul>
