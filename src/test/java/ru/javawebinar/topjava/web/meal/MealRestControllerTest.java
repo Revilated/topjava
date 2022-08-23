@@ -91,7 +91,9 @@ class MealRestControllerTest extends AbstractControllerTest {
         Meal newMeal = MealTestData.getNew();
         ResultActions action = perform(MockMvcRequestBuilders.post(REST_URL)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(JsonUtil.writeValue(newMeal)));
+                .with(userHttpBasic(user))
+                .content(JsonUtil.writeValue(newMeal)))
+                .andDo(print());
 
         Meal created = MEAL_MATCHER.readFromJson(action);
         int newId = created.id();
